@@ -1,0 +1,21 @@
+const path = require("path");
+
+const express = require("express");
+
+const router = express.Router();
+
+const adminData = require("./admin");
+
+router.get('/', (req, res, next) => {
+    const products = adminData.products;  //gelen product ürünlerini shop view ine gönderdik.
+    res.render("shop", {
+        prods: products, docTitle: "Shop",
+        path: "/",
+        hasProducts: products.length > 0,
+        activeShop:true,
+        productCSS:true,
+        // layout:false  :eğer default layout u kullanmak istemeseydik bunu yazacaktık.
+    });  
+});
+
+module.exports = router;
