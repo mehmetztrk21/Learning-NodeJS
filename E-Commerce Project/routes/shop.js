@@ -10,7 +10,11 @@ router.get('/', shopController.getIndex);
 
 router.get('/products', shopController.getProducts);
 
+router.get("/products/:productId",shopController.GetProduct);  //dinamik route işlemlerini her zaman spesifik olarak aşağpılara yazmak doğrudur. Çünkü üste yazarsak alttaki prduct url lerine giriş olmayabilir.
+
 router.get('/cart', shopController.getCart);
+
+router.post('/cart', shopController.postCart);
 
 router.get('/orders', shopController.getOrders);
 
