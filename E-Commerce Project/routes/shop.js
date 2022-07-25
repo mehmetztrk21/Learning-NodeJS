@@ -15,6 +15,7 @@ router.get("/products/:productId",shopController.GetProduct);  //dinamik route i
 router.get('/cart', shopController.getCart);
 
 router.post('/cart', shopController.postCart);
+router.get("/cart/delete/:id",shopController.deleteCart);
 
 router.get('/orders', shopController.getOrders);
 
