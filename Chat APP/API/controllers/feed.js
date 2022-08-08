@@ -4,7 +4,7 @@ const User = require("../models/user");
 const fs = require("fs");
 const path = require("path");
 
-exports.getPosts = (req, res, next) => {
+exports.getPosts = async (req, res, next) => {
     const currentPage = req.query.page || 1;
     const perPage = 2;
     try {
