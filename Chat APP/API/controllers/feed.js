@@ -1,9 +1,8 @@
 const { validationResult } = require("express-validator");
-const Post = require("../models/posts");
-
+const Post = require("../models/post");
+const User = require("../models/user");
 const fs = require("fs");
 const path = require("path");
-const { post } = require("../routes/feed");
 
 exports.getPosts = (req, res, next) => {
     const currentPage = req.query.page || 1;
@@ -60,21 +59,35 @@ exports.postPost = (req, res, next) => {
         error.statusCode = 422;
         throw error;
     }
+    let creator;
     const title = req.body.title;
     const content = req.body.content;
     const imageUrl = req.file.path.replace("\\", "/");
-    const post = new Post({ title: title, content: content, imageUrl: imageUrl, creator: { name: "Mehmet" } });
-    post.save().then(result => {
-        res.status(201).json({
-            messge: "created.",
-            post: result
-        });
-    }).catch(err => {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);  //hata olursa bul ve diğer katmana ile (app.js de)
-    })
+    const post = new Post({ title: title, content: content, imageUrl: imageUrl, creator: req.userId });
+    post.save()
+        .then(result => {
+            return User.findById(req.userId);
+
+        })
+        .then(user => {
+            creator = user;
+            user.posts.push(post);
+            return user.save();
+
+        })
+        .then(result => {
+            res.status(201).json({
+                messge: "created.",
+                post: post,
+                creator: { _id: creator._id, name: creator.name }
+            });
+        })
+        .catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err);  //hata olursa bul ve diğer katmana ile (app.js de)
+        })
 };
 exports.updatePost = (req, res, next) => {
     const postId = req.params.postId;
@@ -102,6 +115,12 @@ exports.updatePost = (req, res, next) => {
                 error.statusCode = 404;
                 throw error;
             }
+            if(post.creator.toString()!==req.userId){
+                const error = new Error('Not authorized.');
+                error.statusCode = 403;
+                throw error;
+            }
+
             if (imageUrl !== post.imageUrl) {
                 clearImage(post.imageUrl);
             }
@@ -121,27 +140,41 @@ exports.updatePost = (req, res, next) => {
         });
 };
 
-exports.DeletePost = (req, res, next) => {
+exports.deletePost = (req, res, next) => {
     const postId = req.params.postId;
-    Post.findByIdAndDelete(postId)
-        .then(post => {
-            if (!post) {
-                const error = new Error('Could not find post.');
-                error.statusCode = 404;
-                throw error;
-            }
-            clearImage(post.imageUrl);
-            console.log(post);
-            res.status(200).json({ message: 'Post deleted!' });
-
-        })
-        .catch(err => {
-            if (!err.statusCode) {
-                err.statusCode = 500;
-            }
-            next(err);
-        });
-}
+    Post.findById(postId)
+      .then(post => {
+        if (!post) {
+          const error = new Error('Could not find post.');
+          error.statusCode = 404;
+          throw error;
+        }
+        if (post.creator.toString() !== req.userId) {
+          const error = new Error('Not authorized!');
+          error.statusCode = 403;
+          throw error;
+        }
+        // Check logged in user
+        clearImage(post.imageUrl);
+        return Post.findByIdAndRemove(postId);
+      })
+      .then(result => {
+        return User.findById(req.userId);
+      })
+      .then(user => {
+        user.posts.pull(postId);  //post silinirse kullanıcı tablosundaki diziden de sil.
+        return user.save();
+      })
+      .then(result => {
+        res.status(200).json({ message: 'Deleted post.' });
+      })
+      .catch(err => {
+        if (!err.statusCode) {
+          err.statusCode = 500;
+        }
+        next(err);
+      });
+  };
 
 const clearImage = filePath => {
     filePath = path.join(__dirname, "..", filePath);
