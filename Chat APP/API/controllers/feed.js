@@ -7,25 +7,23 @@ const path = require("path");
 exports.getPosts = (req, res, next) => {
     const currentPage = req.query.page || 1;
     const perPage = 2;
-    let totalItems;
-    Post.find().countDocuments()
-        .then(count => {
-            totalItems = count;
-            return Post.find().skip((currentPage - 1) * perPage).limit(perPage);
-        })
-        .then(posts => {
-            res.status(200).json({
-                posts: posts,
-                totalItems: totalItems,
-                message: "Fetched post succesfull."
-            });
-        })
-        .catch(err => {
-            if (!err.statusCode) {
-                err.statusCode = 500;
-            }
-            next(err);  //hata olursa bul ve diğer katmana ile (app.js de)
-        })
+    try {
+        const totalItems = await Post.find().countDocuments();
+        const posts = await Post.find()
+            .skip((currentPage - 1) * perPage)
+            .limit(perPage);
+
+        res.status(200).json({
+            message: 'Fetched posts successfully.',
+            posts: posts,
+            totalItems: totalItems
+        });
+    } catch (err) {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
 };
 
 exports.getPost = (req, res, next) => {
@@ -115,7 +113,7 @@ exports.updatePost = (req, res, next) => {
                 error.statusCode = 404;
                 throw error;
             }
-            if(post.creator.toString()!==req.userId){
+            if (post.creator.toString() !== req.userId) {
                 const error = new Error('Not authorized.');
                 error.statusCode = 403;
                 throw error;
@@ -143,38 +141,38 @@ exports.updatePost = (req, res, next) => {
 exports.deletePost = (req, res, next) => {
     const postId = req.params.postId;
     Post.findById(postId)
-      .then(post => {
-        if (!post) {
-          const error = new Error('Could not find post.');
-          error.statusCode = 404;
-          throw error;
-        }
-        if (post.creator.toString() !== req.userId) {
-          const error = new Error('Not authorized!');
-          error.statusCode = 403;
-          throw error;
-        }
-        // Check logged in user
-        clearImage(post.imageUrl);
-        return Post.findByIdAndRemove(postId);
-      })
-      .then(result => {
-        return User.findById(req.userId);
-      })
-      .then(user => {
-        user.posts.pull(postId);  //post silinirse kullanıcı tablosundaki diziden de sil.
-        return user.save();
-      })
-      .then(result => {
-        res.status(200).json({ message: 'Deleted post.' });
-      })
-      .catch(err => {
-        if (!err.statusCode) {
-          err.statusCode = 500;
-        }
-        next(err);
-      });
-  };
+        .then(post => {
+            if (!post) {
+                const error = new Error('Could not find post.');
+                error.statusCode = 404;
+                throw error;
+            }
+            if (post.creator.toString() !== req.userId) {
+                const error = new Error('Not authorized!');
+                error.statusCode = 403;
+                throw error;
+            }
+            // Check logged in user
+            clearImage(post.imageUrl);
+            return Post.findByIdAndRemove(postId);
+        })
+        .then(result => {
+            return User.findById(req.userId);
+        })
+        .then(user => {
+            user.posts.pull(postId);  //post silinirse kullanıcı tablosundaki diziden de sil.
+            return user.save();
+        })
+        .then(result => {
+            res.status(200).json({ message: 'Deleted post.' });
+        })
+        .catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err);
+        });
+};
 
 const clearImage = filePath => {
     filePath = path.join(__dirname, "..", filePath);
