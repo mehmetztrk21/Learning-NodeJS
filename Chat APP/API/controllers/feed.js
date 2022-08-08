@@ -6,12 +6,21 @@ const path = require("path");
 const { post } = require("../routes/feed");
 
 exports.getPosts = (req, res, next) => {
-    Post.find().then(posts => {
-        res.status(200).json({
-            posts: posts,
-            message: "Fetched post succesfull."
-        });
-    })
+    const currentPage = req.query.page || 1;
+    const perPage = 2;
+    let totalItems;
+    Post.find().countDocuments()
+        .then(count => {
+            totalItems = count;
+            return Post.find().skip((currentPage - 1) * perPage).limit(perPage);
+        })
+        .then(posts => {
+            res.status(200).json({
+                posts: posts,
+                totalItems: totalItems,
+                message: "Fetched post succesfull."
+            });
+        })
         .catch(err => {
             if (!err.statusCode) {
                 err.statusCode = 500;
