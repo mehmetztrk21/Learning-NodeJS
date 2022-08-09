@@ -1,0 +1,6 @@
+İstemci tarafına:
+npm install --save socket.io-client
+
+sunucu tarafına:
+
+npm install --save socket.io
