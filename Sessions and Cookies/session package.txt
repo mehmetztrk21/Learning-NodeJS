@@ -1,1 +1,6 @@
 npm install --save express-session
+
+
+//sessionları db de tutmak için
+
+npm install --save connect-mongodb-session
