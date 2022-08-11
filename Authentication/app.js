@@ -17,6 +17,10 @@ const store = new MongoDBStore({
   collection: 'sessions'
 });
 
+//csrf desteği için.
+const csrf=require("csurf");
+const csrfProtection=csrf();
+
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
@@ -35,6 +39,9 @@ app.use(
   })
 );
 
+//csrf desteğini çalıştırdık.
+app.use(csrfProtection);
+
 app.use((req, res, next) => {
   if (!req.session.user) {
     return next();
@@ -46,6 +53,14 @@ app.use((req, res, next) => {
     })
     .catch(err => console.log(err));
 });
+
+
+//bu bütün isteklerin response lerine ekstra olarak bu alanları ekle demek. Bu sayede her istek için tek tek her yere yazmaya gerek yok eskisi gibi.
+app.use((req,res,next)=>{
+  res.locals.isAuthenticated=req.session.isLoggedIn;
+  res.locals.csrfToken=req.csrfToken();
+  next();
+})
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
