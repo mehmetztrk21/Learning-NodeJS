@@ -1,0 +1,3 @@
+https://app.sendgrid.com/guide?from=profile&integrate=true
+
+npm install --save nodemailer-sendgrid-transport
