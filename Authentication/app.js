@@ -21,6 +21,9 @@ const store = new MongoDBStore({
 const csrf=require("csurf");
 const csrfProtection=csrf();
 
+const flash=require("connect-flash");
+
+
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
@@ -41,6 +44,8 @@ app.use(
 
 //csrf desteğini çalıştırdık.
 app.use(csrfProtection);
+
+app.use(flash());
 
 app.use((req, res, next) => {
   if (!req.session.user) {

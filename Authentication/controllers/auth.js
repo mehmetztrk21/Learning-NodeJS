@@ -1,18 +1,22 @@
 const User = require('../models/user');
 const bcrypt = require("bcryptjs");
 exports.getLogin = (req, res, next) => {
+  let message = req.flash("error");
+  message = message.length > 0 ? message[0] : null;
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
-    isAuthenticated: false
+    errorMessage: message
   });
 };
 
 exports.getSignup = (req, res, next) => {
+  let message = req.flash("error");
+  message = message.length > 0 ? message[0] : null;
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'Signup',
-    isAuthenticated: false
+    errorMessage: message
   });
 };
 
@@ -22,6 +26,7 @@ exports.postLogin = async (req, res, next) => {
   try {
     const user = await User.findOne({ email: email });
     if (!user) {
+      req.flash("error", "Invalıd email or password.")
       return res.redirect("/login");
     }
     const isEqual = await bcrypt.compare(password, user.password);
@@ -36,17 +41,6 @@ exports.postLogin = async (req, res, next) => {
   catch (error) {
     console.log(error);
   }
-
-  User.findById('5bab316ce0a7c75f783cb8a8')
-    .then(user => {
-      req.session.isLoggedIn = true;
-      req.session.user = user;
-      req.session.save(err => {
-        console.log(err);
-        res.redirect('/');
-      });
-    })
-    .catch(err => console.log(err));
 };
 
 exports.postSignup = async (req, res, next) => {
@@ -54,9 +48,11 @@ exports.postSignup = async (req, res, next) => {
   const password = req.body.password;
   const confirmPassword = req.body.confirmPassword;
   try {
-    const user = User.findOne({ email: email })
+    const user = await User.findOne({ email: email })
+    console.log(user)
     if (user) {
-      res.redirect("/signup");
+      req.flash("error", "E-mail is already exists.");
+      return res.redirect("/signup");
     }
     const hashedPass = await bcrypt.hash(password, 12)
     const newUser = new User({
@@ -65,7 +61,7 @@ exports.postSignup = async (req, res, next) => {
       cart: { item: [] }
     });
     await newUser.save();
-    res.redirect("/login");
+    return res.redirect("/login");
   } catch (error) {
     console.log(error);
   }

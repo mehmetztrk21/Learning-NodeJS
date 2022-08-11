@@ -241,3 +241,14 @@ form {
     display: none;
   }
 }
+
+.user-message{
+    text-align: center;
+    border: 1px solid black;
+    margin-bottom: 1rem;
+}
+.user-message--error{
+  color: red;
+  padding: 5px;
+  border-color: red;
+}
