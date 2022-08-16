@@ -1,6 +1,9 @@
 const Product = require('../models/product');
 const Order = require('../models/order');
 
+const fs = require("fs");
+const path = require("path")
+
 exports.getProducts = (req, res, next) => {
   Product.find()
     .then(products => {
@@ -137,3 +140,18 @@ exports.getOrders = (req, res, next) => {
       return next(error);
     });
 };
+
+exports.getInvoice = (req, res, next) => {
+  const orderId = req.params.orderId;
+  const InvoiceName = "invoice-" + orderId + ".pdf";
+  console.log(orderId);
+  const invoicePath = path.join("data", "invoices", InvoiceName);
+  fs.readFile(invoicePath, (err, data) => {
+    if (err) {
+      return next(err);
+    }
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader('Content-Disposition', 'outline;filename="' + InvoiceName + '"');  //nerede açılsın ve dosya ismi ne olsun? (outline,inline olabilir.);
+    res.send(data);
+  })
+}
