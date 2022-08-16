@@ -9,7 +9,7 @@
     "start-server": "node app.js",
     "debug": "node --inspect app.js"
   },
-  "author": "Maximilian Schwarzmüller",
+  "author": "Mehmet ÖZTÜRK",
   "license": "ISC",
   "devDependencies": {
     "nodemon": "^1.18.3"
