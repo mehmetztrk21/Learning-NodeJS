@@ -154,14 +154,20 @@ exports.getInvoice = (req, res, next) => {
     
     const InvoiceName = "invoice-" + orderId + ".pdf";
     const invoicePath = path.join("data", "invoices", InvoiceName);
-    fs.readFile(invoicePath, (err, data) => {
-      if (err) {
-        return next(err);
-      }
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader('Content-Disposition', 'outline;filename="' + InvoiceName + '"');  //nerede açılsın ve dosya ismi ne olsun? (outline,inline olabilir.);
-      res.send(data);
-    })
+    // fs.readFile(invoicePath, (err, data) => {
+    //   if (err) {
+    //     return next(err);
+    //   }
+    //   res.setHeader("Content-Type", "application/pdf");
+    //   res.setHeader('Content-Disposition', 'outline;filename="' + InvoiceName + '"');  //nerede açılsın ve dosya ismi ne olsun? (outline,inline olabilir.);
+    //   res.send(data);
+    // })
+    
+    //bu yöntem ile dosyayı okumadan direkt tarayıcıya aktarıyoruz. Bu yöntem büyük dosyalarda çok işe yarar.
+    const file=fs.createReadStream(invoicePath);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader('Content-Disposition', 'outline;filename="' + InvoiceName + '"');  
+    file.pipe(res);
   })
     .catch(err => { next(err) });
 
