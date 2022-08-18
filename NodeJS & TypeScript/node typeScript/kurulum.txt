@@ -1,0 +1,13 @@
+npm init 
+
+tsc --init
+
+//yüklü paketler için tipleri de indirmek lazım
+npm install --save-dev  @types/express
+ npm install --save-dev @types/node 
+ npm install --save-dev  @types/body-parser
+
+
+ en son tsc ile bütün ts dosyalarını derliyoruz.
+
+ node app.js ile çalıştır her zamanki gibi.
