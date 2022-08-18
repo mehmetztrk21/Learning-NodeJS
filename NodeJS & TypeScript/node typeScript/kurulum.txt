@@ -11,3 +11,5 @@ npm install --save-dev  @types/express
  en son tsc ile bütün ts dosyalarını derliyoruz.
 
  node app.js ile çalıştır her zamanki gibi.
+
+ Type script doğrudan çalıştırılmaz. ts config de dist ve src dosya yerlerini ayarlayıp derledikten Sonra bizim asıl kodumuz dist altındaki .js kodları oluyor. Zaten çalıştırırken de dist/app.js diyoruz.
